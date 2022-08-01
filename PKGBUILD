@@ -4,7 +4,7 @@
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
-pkgbase=linux-rpi
+pkgbase=linux-rpi-sane
 _commit=a90998a3e549911234f9f707050858b98b71360f
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
@@ -12,37 +12,34 @@ pkgver=5.15.56
 pkgrel=2
 pkgdesc='Linux'
 url="http://www.kernel.org/"
-arch=(armv7h aarch64)
+#arch=(armv7h aarch64)
+arch=(aarch64)
 license=(GPL2)
 makedepends=(
-  bc kmod inetutils
+  bc kmod
 )
 options=('!strip')
-source_armv7h=('config' 'config.txt')
-source_aarch64=('config8' 'config8.txt')
+#source_armv7h=('config')
+source_aarch64=('config8')
 source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
-        cmdline.txt
         0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
         linux.preset
         60-linux.hook
         90-linux.hook
 )
 md5sums=('1dcd7b6ed031b4b54ee95bf6bc9a4eed'
-         '31c02f4518d46deb5f0c2ad1f8b083cd'
          'f66a7ea3feb708d398ef57e4da4815e9'
-         '86d4a35722b5410e3b29fc92dae15d4b'
+         '73007c2069a22d142e5772b54572d58c'
          '0a5f16bfec6ad982a2f6782724cca8ba'
          '441ec084c47cddc53e592fb0cbce4edf')
-md5sums_armv7h=('5d58e497340f67bb54e0b86855457904'
-                '7e4403dea857e40005bf76beda9927ff')
-md5sums_aarch64=('5d1d65b0c5fe35cb2c89e7dbe9a59dc7'
-                 '7e4403dea857e40005bf76beda9927ff')
+#md5sums_armv7h=('5d58e497340f67bb54e0b86855457904')
+md5sums_aarch64=('919ed2e5819c3200f7983dda93889d8a')
 
 # setup vars
 if [[ $CARCH == "armv7h" ]]; then
-  _kernel=kernel7.img KARCH=arm _image=zImage _config=config _bconfig=config.txt
+  _kernel="kernel7.img${pkgbase#linux}" KARCH=arm _image=zImage _config=config
 elif [[ $CARCH == "aarch64" ]]; then
-  _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8 _bconfig=config8.txt
+  _kernel="kernel8.img${pkgbase#linux}" KARCH=arm64 _image=Image _config=config8
 fi
 
 prepare() {
@@ -96,20 +93,19 @@ _package() {
   rm "$modulesdir"/{source,build}
 
   echo "Installing Arch ARM specific stuff..."
-  mkdir -p "${pkgdir}"/boot
-  make INSTALL_DTBS_PATH="${pkgdir}/boot" dtbs_install
+  local dtbdir="${pkgdir}/boot/dtb-${kernver}"
+  mkdir -p "${dtbdir}"
+  make INSTALL_DTBS_PATH="${dtbdir}" dtbs_install
 
   if [[ $CARCH == "aarch64" ]]; then
     # drop hard-coded devicetree=foo.dtb in /boot/config.txt for
     # autodetected load of supported of models at boot
-    find "${pkgdir}/boot/broadcom" -type f -print0 | xargs -0 mv -t "${pkgdir}/boot"
-    rmdir "${pkgdir}/boot/broadcom"
+    find "${dtbdir}/broadcom" -type f -print0 | xargs -0 mv -t "${dtbdir}"
+    rmdir "${dtbdir}/broadcom"
   fi
 
   cp arch/$KARCH/boot/$_image "${pkgdir}/boot/$_kernel"
   cp arch/$KARCH/boot/dts/overlays/README "${pkgdir}/boot/overlays"
-  install -m644 ../$_bconfig "${pkgdir}/boot/config.txt"
-  install -m644 ../cmdline.txt "${pkgdir}/boot"
 
   # sed expression for following substitutions
   local _subst="
@@ -131,8 +127,8 @@ _package() {
 _package-headers() {
   pkgdesc="RPi Foundation header and scripts for building modules for Linux kernel"
   provides=("linux-headers=${pkgver}")
-  conflicts=('linux-headers')
-  replaces=('linux-raspberrypi-latest-headers' 'linux-raspberrypi4-headers')
+  #conflicts=('linux-headers')
+  #replaces=('linux-raspberrypi-latest-headers' 'linux-raspberrypi4-headers')
 
   cd ${_srcname}
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
