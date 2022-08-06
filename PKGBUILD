@@ -73,8 +73,8 @@ _package() {
   optdepends=('wireless-regdb: to set the correct wireless channels of your country')
   provides=("linux=${pkgver}" 'WIREGUARD-MODULE')
   conflicts=('linux' 'uboot-raspberrypi')
-  install=${pkgname}.install
-  backup=('boot/config.txt' 'boot/cmdline.txt')
+  #install=${pkgname}.install
+  #backup=('boot/config.txt' 'boot/cmdline.txt')
   replaces=('linux-raspberrypi-latest' 'linux-raspberrypi4')
 
   cd "${srcdir}/${_srcname}"
