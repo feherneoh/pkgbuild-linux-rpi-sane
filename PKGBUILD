@@ -37,9 +37,9 @@ md5sums_aarch64=('919ed2e5819c3200f7983dda93889d8a')
 
 # setup vars
 if [[ $CARCH == "armv7h" ]]; then
-  _kernel="kernel7.img${pkgbase#linux}" KARCH=arm _image=zImage _config=config
+  _kernel="kernel7.img" KARCH=arm _image=zImage _config=config
 elif [[ $CARCH == "aarch64" ]]; then
-  _kernel="kernel8.img${pkgbase#linux}" KARCH=arm64 _image=Image _config=config8
+  _kernel="kernel8.img" KARCH=arm64 _image=Image _config=config8
 fi
 
 prepare() {
@@ -93,7 +93,7 @@ _package() {
   rm "$modulesdir"/{source,build}
 
   echo "Installing Arch ARM specific stuff..."
-  local dtbdir="${pkgdir}/boot/dtb-${kernver}"
+  local dtbdir="${pkgdir}/boot/${pkgbase}/"
   mkdir -p "${dtbdir}"
   make INSTALL_DTBS_PATH="${dtbdir}" dtbs_install
 
@@ -104,8 +104,8 @@ _package() {
     rmdir "${dtbdir}/broadcom"
   fi
 
-  cp arch/$KARCH/boot/$_image "${pkgdir}/boot/$_kernel"
-  cp arch/$KARCH/boot/dts/overlays/README "${pkgdir}/boot/overlays"
+  cp arch/$KARCH/boot/$_image "${pkgdir}/boot/${pkgbase}/$_kernel"
+  cp arch/$KARCH/boot/dts/overlays/README "${pkgdir}/boot/${pkgbase}/overlays/"
 
   # sed expression for following substitutions
   local _subst="
